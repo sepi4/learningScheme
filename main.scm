@@ -13,13 +13,7 @@
       ((atom? (car l)) (lat? (cdr l)))
       (else #f))))
 
-(define rember
-  (lambda (a lat)
-    (cond
-      ((null? lat) (quote ()))
-      ((eq? (car lat) a) (cdr lat))
-      (else (cons (car lat)
-                  (rember a (cdr lat)))))))
+
 
 
 
@@ -370,6 +364,7 @@
         (cons (insertL* new old (car lat))
               (insertL* new old (cdr lat)))))))
 
+
 ;(insertL* "kissa" 1 '((1 (4 1 (6 (2 1 2 )) 4 1 1 1)) 1 1 1 1 3 (3) (3 (1 0))))
       
 
@@ -417,12 +412,126 @@
     (cond
       ((and (null? l1) (null? l2)) #t )
       ((or (null? l1) (null? l2)) #f)
-      ((and (atom? (car l1 )) (atom? (car l2)))
-       (and (eqan? (car l1) (car l2)) (eqlist? (cdr l1 ) (cdr l2))))
-      ((or (atom? (car l1)) (atom? (car l2))) #f)
       (else
-       (and (eqlist? (car l1 ) (car l2))
-            (eqlist? (cdr l1 ) (cdr l2)))))))
-       
-      
-(eqlist?'((1 2) 2 3 3) '((1 2) 2 3 3))
+       (and (equal? (car l1 ) (car l2))
+            (equal? (cdr l1 ) (cdr l2)))))))
+
+; onko elementit samanlaisia      
+(define equal?
+  (lambda (s1 s2)
+    (cond
+      ((and (atom? s1) (atom? s2)) (eqan? s1 s2))
+      ((or (atom? s1) (atom? s2)) #f)
+      (else (eqlist? s1 s2)))))
+
+
+(define rember
+  (lambda (s l)
+    (cond
+      ((null? l) (quote ()))
+      ((equal? (car l) s) (cdr l))
+      (else
+       (cons (car l) (rember s (cdr l)))))))
+
+
+(define numbered?
+  (lambda (aexp)
+    (cond
+      ((atom? aexp) (number? aexp))
+      (else
+       (and (numbered? (car aexp))
+            (numbered? (car (cdr (cdr aexp)))))))))
+
+(define 1st-sub-exp
+  (lambda (aexp)
+    (car aexp)))
+
+(define 2st-sub-exp
+  (lambda (aexp)
+    (car (cdr (cdr aexp)))))
+
+(define operator
+  (lambda (nexp)
+    (car (cdr nexp))))
+
+(define value
+  (lambda (nexp)
+    (cond
+      ((atom? nexp) nexp)
+      ((eq? (operator nexp) (quote o+))
+       (o+
+        (value (1st-sub-exp nexp))
+        (value (2st-sub-exp nexp))))
+      ((eq? (operator nexp) (quote x))
+       (x
+        (value (1st-sub-exp nexp))
+        (value (2st-sub-exp nexp))))
+      (else
+       (**
+        (value (1st-sub-exp nexp))
+        (value (2st-sub-exp nexp)))))))
+
+
+; lukuina sulut (()()) = 2
+(define sero?
+  (lambda (n)
+    (null? n)))
+
+(define edd1
+  (lambda (n)
+    (cons (quote ()) n)))
+
+(define zub1
+  (lambda (n)
+    (cdr n)))
+
+
+ 
+;esim: (oo+ '(()) '(()()())) = '(()()()())
+(define oo+
+  (lambda (a b)
+    (cond
+      ((sero? b) a)
+      (else
+       (edd1 (oo+ a (zub1 b)))))))
+
+; onko joukko (kaikki alkiot ovat unikkeja)
+(define set?
+  (lambda (lat)
+    (cond
+      ((null? lat) #t)
+      ((member? (car lat) (cdr lat)) #f)
+      (else
+       (set? (cdr lat))))))
+
+
+
+; tee joukko
+(define makeset
+  (lambda (lat)
+    (cond
+      ((null? lat) (quote()))
+      (else
+       (cons (car lat) (makeset (multirember (car lat) (cdr lat))))))))
+
+
+; onko ala-joukko
+(define subset?
+  (lambda (set1 set2)
+    (cond
+      ((null? set1) #t)
+      ((member? (car set1) set2)
+       (subset? (cdr set1) set2))
+      (else #f))))
+         
+
+; onko joukot samanlaiset
+(define eqset?
+  (lambda (set1 set2)
+    (and (subset? set1 set2)
+         (subset? set2 set1))))
+         
+
+
+
+
