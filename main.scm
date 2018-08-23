@@ -1,7 +1,5 @@
 #lang racket
 
-
-
 (define atom?
 (lambda (x)
   (and (not (pair? x)) (not (null? x)))))
@@ -14,15 +12,13 @@
       (else #f))))
 
 
-
-
-
 (define firsts
   (lambda (l)
     (cond 
       ((null? l) (quote()))
-      (else (cons (car (car l)) (firsts (cdr l))))
-      )))
+      (else (cons
+             (car (car l))
+             (firsts (cdr l)))))))
 
 
 
@@ -531,6 +527,114 @@
     (and (subset? set1 set2)
          (subset? set2 set1))))
          
+
+; onko leikkaus
+(define intersect?
+  (lambda (set1 set2)
+    (cond
+      ((null? set1) #f)
+      (else (or
+        (member? (car set1) set2)
+        (intersect? (cdr set1) set2))))))
+
+; leikkaus joukoista 
+(define intersect
+  (lambda (set1 set2)
+    (cond
+      ((null? set1) (quote()))
+      ((member? (car set1) set2)
+       (cons
+        (car set1)
+        (intersect (cdr set1) set2)))
+      (else
+       (intersect (cdr set1) set2)))))
+
+
+
+
+(define union
+  (lambda (set1 set2)
+    (cond
+      ((null? set1) set2)
+      ((member? (car set1) set2)
+       (union (cdr set1) set2))
+      (else
+       (cons (car set1) (union (cdr set1) set2))))))
+
+
+; leikkaus kaikista listat joukoista
+(define intersectall
+  (lambda (l-set)
+    (cond
+      ((null? (cdr l-set)) (car l-set))
+      (cons (intersect (car l-set)
+                       (intersectall (cdr l-set)))))))
+
+
+(define a-pair?
+  (lambda(x)
+    (cond
+      ((atom? x) #f)
+      ((null? x) #f)
+      ((null? (cdr x)) #f)
+      ((null? (cdr (cdr x))) #t)
+      (else #f))))
+
+
+(define first
+  (lambda (p)
+    (cond
+      (else (car p)))))
+
+(define second
+  (lambda (p)
+    (cond
+      (else (car (cdr p))))))
+
+(define build
+  (lambda (sl s2)
+    (cond
+      (else (cons sl
+                  (cons s2 (quote ())))))))
+
+(define third
+  (lambda (p)
+    (car (cdr (cdr p)))))
+
+
+(define fun?
+  (lambda (rel)
+    (set? (firsts rel))))
+
+; kääntää parin
+(define revpair
+  (lambda (pair)
+    (build (second pair) (first pair))))
+
+
+; vaihtaa jokaisen parin alkioiden paikat keskenÄän
+(define revrel
+  (lambda (rel)
+    (cond
+      ((null? rel) (quote()))
+      (else (cons (revpair (car rel))
+                  (revrel (cdr rel)))))))
+
+; tekee lista parien toisista alkioista
+(define seconds
+  (lambda (l)
+    (cond 
+      ((null? l) (quote()))
+      (else
+       (cons (second (car l)) (seconds (cdr l)))))))
+
+(define fullfun?
+  (lambda (fun)
+    (set? (seconds fun))))
+
+(define one-to-one?
+  (lambda (fun)
+    (fun? (revrel fun))))
 
 
 
